@@ -1,3 +1,11 @@
+*~
+*.DS_Store
+*.swp
+*.out
+/.settings
+/.buildpath
+/.project
+
 # Logs
 logs
 *.log
@@ -25,3 +33,10 @@ build/Release
 # Dependency directory
 # https://www.npmjs.org/doc/misc/npm-faq.html#should-i-check-my-node_modules-folder-into-git
 node_modules
+
+phpcallogs-f6abdd55bb87.json
+googleapis.json
+test.sh
+project_upload.sh
+
+
