@@ -2,12 +2,14 @@
 if (!global.Promise) {
     global.Promise = require('bluebird');
 }
-
+var path = require('path');
+var fs = require('fs');
 var bunyan = require('bunyan');
 var moment = require('moment');
 var google = require('googleapis');
 var Calendar = google.calendar('v3');
 
+var nbgc_aes, nbgc_key;
 var bunyanoptions, google_email, google_certificate, google_calendar, google_level;
 
 var logToCalendar = function(calendarId) {
@@ -16,12 +18,14 @@ var logToCalendar = function(calendarId) {
     this.calendarId = calendarId;
 
     return new Promise(function(resolve, reject) {
+
         new GoogleCalendar().then(function gotCalendar(cal) {
             self.GoogleCalendar = cal;
             resolve(self);
         }, function noCalendar(err) {
             reject(err);
         });
+
     });
 }
 
@@ -42,22 +46,35 @@ logToCalendar.prototype.write = function(rec) {
     }
 }
 
-var bunyanlog = function(boptions, g_email, g_certificate, g_calendar, g_level) {
+var bunyanlog = function(boptions, nbgcaes, nbgckey, nbgclevel) {
 
     bunyanoptions = boptions;
-    google_email = g_email;
-    google_certificate = g_certificate;
-    google_calendar = g_calendar;
-    google_level = g_level;
+    nbgc_aes = nbgcaes;
+    nbgc_key = nbgckey;
+    google_level = nbgclevel;
 
     var self = this;
 
     return new Promise(function(resolve, reject) {
 
-        new logToCalendar(google_calendar).then(function calendarOk(stream) {
+        getConfig(nbgc_aes, nbgc_key).then(function config_ok(config) {
+ 
+            google_email = config['email'];
+            // Recreate certificate file
+            var certificate_file = path.resolve(__dirname + '/googleapis.json');            
+            fs.writeFileSync(certificate_file, JSON.stringify(config['certificate'], null, 3), 'utf8');           
+            google_certificate = certificate_file;
+            google_calendar = config['calendar'];            
+            return;
+
+        }, function config_failed(err) {
+            reject(err);
+        }).then(function createGoogleCalendar(){
+            return new logToCalendar(google_calendar);
+        }).then(function calendarOk(stream) {
 
             self.calendarstream = stream;
-            
+
             if (bunyanoptions.hasOwnProperty('streams') && Array.isArray(bunyanoptions['streams'])) {
                 bunyanoptions['streams'].push({
                     type: 'raw',
@@ -70,7 +87,7 @@ var bunyanlog = function(boptions, g_email, g_certificate, g_calendar, g_level) 
                     type: 'raw',
                     level: google_level,
                     stream: self.calendarstream
-                });                
+                });
             }
 
             var log = bunyan.createLogger(bunyanoptions);
@@ -90,8 +107,10 @@ var GoogleCalendar = function() {
     this.ServiceAccount = null;
 
     return new Promise(function(resolve, reject) {
+
         ServiceAccount().then(function(authClient) {
             self.ServiceAccount = authClient;
+console.log("ServiceAccount");
             resolve(self);
         }, function(err) {
             self.ServiceAccount = null;
@@ -101,7 +120,9 @@ var GoogleCalendar = function() {
             reject(e);
         });
     });
+
 }
+
 
 GoogleCalendar.prototype.eventsInsert = function(calendarId, summary, description) {
 
@@ -161,7 +182,7 @@ GoogleCalendar.prototype.eventsInsert = function(calendarId, summary, descriptio
 function ServiceAccount() {
 
     var self = this;
-
+console.log("AAAA", google_email, google_certificate);
     return new Promise(function(resolve, reject) {
 
         /**
@@ -171,18 +192,18 @@ function ServiceAccount() {
          * See the defaultauth.js sample for an alternate way of fetching compute credentials.
          */
         try {
-/**
- * JWT service account credentials.
- *
- * Retrieve access token using gtoken.
- *
- * @param {string=} email service account email address.
- * @param {string=} keyFile path to private key file.
- * @param {string=} key value of key
- * @param {(string|array)=} scopes list of requested scopes or a single scope.
- * @param {string=} subject impersonated account's email address.
- * @constructor
- */            
+            /**
+             * JWT service account credentials.
+             *
+             * Retrieve access token using gtoken.
+             *
+             * @param {string=} email service account email address.
+             * @param {string=} keyFile path to private key file.
+             * @param {string=} key value of key
+             * @param {(string|array)=} scopes list of requested scopes or a single scope.
+             * @param {string=} subject impersonated account's email address.
+             * @constructor
+             */
             var authClient = new google.auth.JWT(
                 google_email,
                 google_certificate,
@@ -193,7 +214,7 @@ function ServiceAccount() {
 
             authClient.authorize(function(err, tokens) {
                 if (err) {
-console.log("hello", google_certificate);                    
+                    console.log("hello", google_certificate);
                     reject(err);
                 } else {
                     resolve(authClient);
@@ -202,6 +223,32 @@ console.log("hello", google_certificate);
         } catch (err) {
             reject(err);
         }
+    });
+}
+
+function getConfig(url, key) {
+
+    return new Promise(function(resolve, reject) {
+        var http = require('http');
+        http.get(url, function(res) {
+            res.setEncoding('utf8');
+            var body = '';
+            res.on('data', function(chunk) {
+                body += chunk;
+            });
+            res.on('end', function() {
+                try {;
+                    var encryptor = require('simple-encryptor')(key);
+                    var decrypted = encryptor.decrypt(body);                    
+                    resolve(decrypted);
+                } catch (e) {
+                    reject(e.message);
+                }
+            });
+
+        }).on('error', function(e) {
+            reject(e.message);
+        });
     });
 }
 

@@ -35,8 +35,7 @@ build/Release
 node_modules
 
 phpcallogs-f6abdd55bb87.json
+NBGC.aes
 googleapis.json
 test.sh
 project_upload.sh
-
-

@@ -8,17 +8,6 @@ var fs = require('fs');
 
 var Logger = require('./index.js');
 
-try {
-	var certificate = JSON.parse(process.env.NBGC_CERTIFICATE);
-} catch (e) {
-	console.error('Invalid json data in NBGC_CERTIFICATE environment variable', e);
-	process.exit(1);
-}
-var certificate_file = path.resolve(__dirname + '/googleapis.json');
-fs.writeFileSync(__dirname + '/googleapis.json', JSON.stringify(certificate, null, 3), 'utf8');
-
-var email = process.env.NBGC_EMAIL;
-var calendar = process.env.NBGC_CALENDAR;
 var level = 'fatal';
 
 if (module.parent) {
@@ -39,10 +28,10 @@ var bunyanoptions = {
 };
 
 var log;
-new Logger(bunyanoptions, email, certificate_file, calendar, level).then(function logOk(l){
+new Logger(bunyanoptions, process.env.NBGC_AES, process.env.NBGC_KEY, level).then(function logOk(l){
 	log = l;
 	log.info('Logging started');
-	log.fatal('Calendar test');
+	log.fatal('Hi Calendar');
 }, function logNotOk(err){
 	console.error('Logging start failed: ', err);
 });
