@@ -39,3 +39,5 @@ NBGC.aes
 googleapis.json
 test.sh
 project_upload.sh
+encrypt.sh
+
