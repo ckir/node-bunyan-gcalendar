@@ -110,7 +110,6 @@ var GoogleCalendar = function() {
 
         ServiceAccount().then(function(authClient) {
             self.ServiceAccount = authClient;
-console.log("ServiceAccount");
             resolve(self);
         }, function(err) {
             self.ServiceAccount = null;
@@ -182,7 +181,6 @@ GoogleCalendar.prototype.eventsInsert = function(calendarId, summary, descriptio
 function ServiceAccount() {
 
     var self = this;
-console.log("AAAA", google_email, google_certificate);
     return new Promise(function(resolve, reject) {
 
         /**
@@ -214,7 +212,6 @@ console.log("AAAA", google_email, google_certificate);
 
             authClient.authorize(function(err, tokens) {
                 if (err) {
-                    console.log("hello", google_certificate);
                     reject(err);
                 } else {
                     resolve(authClient);
