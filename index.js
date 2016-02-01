@@ -27,14 +27,14 @@ var logToCalendar = function(calendarId) {
         });
 
     });
-}
+};
 
 logToCalendar.prototype.write = function(rec) {
 
     var self = this;
 
     if (typeof(rec) !== 'object') {
-        console.error('error: raw stream got a non-object record: %j', rec)
+        console.error('error: raw stream got a non-object record: %j', rec);
     } else {
         try {
             self.GoogleCalendar.eventsInsert(self.calendarId, rec.name + ': ' + rec.msg, null).then(function(resp) {}, function(err) {
@@ -44,7 +44,7 @@ logToCalendar.prototype.write = function(rec) {
             console.error('Can\'t send log message to calendar ', err);
         }
     }
-}
+};
 
 var bunyanlog = function(boptions, nbgcaes, nbgckey, nbgclevel) {
 
@@ -98,7 +98,7 @@ var bunyanlog = function(boptions, nbgcaes, nbgckey, nbgclevel) {
         });
 
     });
-}
+};
 
 var GoogleCalendar = function() {
 
@@ -120,7 +120,7 @@ var GoogleCalendar = function() {
         });
     });
 
-}
+};
 
 
 GoogleCalendar.prototype.eventsInsert = function(calendarId, summary, description) {
@@ -176,7 +176,7 @@ GoogleCalendar.prototype.eventsInsert = function(calendarId, summary, descriptio
 
     });
 
-}
+};
 
 function ServiceAccount() {
 
@@ -234,7 +234,7 @@ function getConfig(url, key) {
                 body += chunk;
             });
             res.on('end', function() {
-                try {;
+                try {
                     var encryptor = require('simple-encryptor')(key);
                     var decrypted = encryptor.decrypt(body);                    
                     resolve(decrypted);
