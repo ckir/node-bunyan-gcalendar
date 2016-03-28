@@ -1,6 +1,6 @@
 {
   "name": "node-bunyan-gcalendar",
-  "version": "1.0.4",
+  "version": "1.0.3",
   "description": "A promise based implementation (bluebird) of node-bunyan to write log records to Google Calendar",
   "main": "index.js",
   "scripts": {
@@ -23,11 +23,11 @@
   },
   "homepage": "https://github.com/ckir/node-bunyan-gcalendar#readme",
   "dependencies": {
-    "bluebird": "^3.3.4",
-    "bunyan": "^1.8.0",
-    "googleapis": "^4.0.0",
-    "moment": "^2.12.0",
-    "simple-encryptor": "^1.0.4",
-    "yargs": "^4.3.2"
+    "bluebird": "^3.1.1",
+    "bunyan": "^1.5.1",
+    "googleapis": "^2.1.7",
+    "moment": "^2.10.6",
+    "simple-encryptor": "^1.0.3",
+    "yargs": "^3.31.0"
   }
 }
